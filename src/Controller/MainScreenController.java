@@ -189,6 +189,7 @@ public class MainScreenController {
     @FXML
     void initialize() throws SQLException, ClassNotFoundException {
         generateCustomerTable();
+        customerTable.refresh();
         generateAppointmentTable();
 
 

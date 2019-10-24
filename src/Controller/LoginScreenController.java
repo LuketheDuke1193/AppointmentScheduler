@@ -97,8 +97,10 @@ public class LoginScreenController {
                     Stage stage = new Stage();
                     stage.setScene(scene);
                     stage.setResizable(false);
-                    stage.show(); //Tells main screen runtime to pause and wait for the new window to close before proceeding.
+                    stage.show();//Tells main screen runtime to pause and wait for the new window to close before proceeding.
                     //Login and load next screen.
+                    Stage loginStage = (Stage) loginButton.getScene().getWindow();
+                    loginStage.close();
                 } else {
                     System.out.println("User and pass did not match");
                 }

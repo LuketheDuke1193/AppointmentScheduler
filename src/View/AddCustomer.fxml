@@ -12,11 +12,11 @@
       <TextField fx:id="nameField" layoutX="91.0" layoutY="101.0" promptText="Customer Name" />
       <TextField fx:id="addressField" layoutX="91.0" layoutY="143.0" prefHeight="25.0" prefWidth="194.0" promptText="Address" />
       <TextField fx:id="cityField" layoutX="91.0" layoutY="182.0" promptText="City" />
+      <TextField fx:id="postalCodeField" layoutX="91.0" layoutY="218.0" promptText="Postal Code" />
       <TextField fx:id="countryField" layoutX="91.0" layoutY="254.0" promptText="Country" />
       <TextField fx:id="phoneNumberField" layoutX="91.0" layoutY="293.0" promptText="Phone Number" />
       <Button fx:id="saveButton" layoutX="443.0" layoutY="349.0" mnemonicParsing="false" onAction="#saveButtonHandler" text="Save" />
       <Button fx:id="cancelButton" layoutX="522.0" layoutY="349.0" mnemonicParsing="false" onAction="#cancelButtonHandler" text="Cancel" />
       <Label layoutX="262.0" layoutY="26.0" text="Add Customer" />
-      <TextField fx:id="postalCodeField" layoutX="91.0" layoutY="218.0" promptText="Postal Code" />
    </children>
 </AnchorPane>
