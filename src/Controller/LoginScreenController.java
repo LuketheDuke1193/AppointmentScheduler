@@ -10,6 +10,7 @@ import java.util.TimeZone;
 
 import Model.CustomerRoster;
 import Model.Main;
+import Model.User;
 import com.mysql.jdbc.Statement;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -48,6 +49,7 @@ public class LoginScreenController {
 
     @FXML
     private RadioButton espanolButton;
+
 
     @FXML
     void englishButtonHandler(ActionEvent event) {
@@ -88,6 +90,7 @@ public class LoginScreenController {
 
                 if (username.equals(dbUsername) && password.equals(dbPassword)) {
                     System.out.println("login success");
+                    Main.user.setUsername(username);
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/MainScreen.fxml"));
                     Parent root = loader.load();
                     Scene scene = new Scene(root);

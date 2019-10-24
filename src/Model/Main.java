@@ -18,6 +18,7 @@ public class Main extends Application {
     private static final String password = "53688712395";
     private static final String driver = "com.mysql.jdbc.Driver";
     public static Connection conn;
+    public static User user = new User();
 
     public static Connection makeConnection() throws ClassNotFoundException, SQLException {
         Class.forName(driver);

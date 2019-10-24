@@ -1,5 +1,6 @@
 package Controller;
 
+import java.io.IOException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.ResourceBundle;
@@ -9,10 +10,14 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Stage;
 
 public class MainScreenController {
 
@@ -87,18 +92,22 @@ public class MainScreenController {
 
     @FXML
     private TableColumn<?, ?> locationColumn;
-
-    public ObservableList<Customer> customerDBList = FXCollections.observableArrayList();
-
-
+    public static CustomerRoster customerRoster = new CustomerRoster();
     @FXML
     void addAppointmentHandler(ActionEvent event) {
         //TODO
     }
 
     @FXML
-    void addCustomerHandler(ActionEvent event) {
-        //TODO
+    void addCustomerHandler(ActionEvent event) throws IOException, SQLException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/AddCustomer.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        Stage stage = new Stage();
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.showAndWait();
+        generateCustomerTable();
     }
 
     @FXML
@@ -167,7 +176,6 @@ public class MainScreenController {
     }
 
     public void generateCustomerTable() throws SQLException {
-        CustomerRoster customerRoster = new CustomerRoster();
         customerRoster.populateRoster();
         customerTable.setItems(customerRoster.getCustomerList());
     }

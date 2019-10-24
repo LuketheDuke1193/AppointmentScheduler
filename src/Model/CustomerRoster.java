@@ -8,7 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class CustomerRoster {
-    public ObservableList<Customer> customerList = FXCollections.observableArrayList();
+    public static ObservableList<Customer> customerList = FXCollections.observableArrayList();
 
     public CustomerRoster(ObservableList<Customer> customerList){
         this.customerList = customerList;
