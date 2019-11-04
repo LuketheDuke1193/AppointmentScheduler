@@ -93,6 +93,7 @@ public class MainScreenController {
     @FXML
     private TableColumn<?, ?> locationColumn;
     public static CustomerRoster customerRoster = new CustomerRoster();
+    public static Customer selectedCustomer;
     @FXML
     void addAppointmentHandler(ActionEvent event) {
         //TODO
@@ -156,8 +157,18 @@ public class MainScreenController {
     }
 
     @FXML
-    void updateCustomerHandler(ActionEvent event) {
-        //TODO
+    void updateCustomerHandler(ActionEvent event) throws SQLException, IOException {
+        //TODO: Grab selected customer and pass it to the UpdateCustomer screen and controller.
+        selectedCustomer = customerTable.getSelectionModel().getSelectedItem();
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/UpdateCustomer.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        Stage stage = new Stage();
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.showAndWait();
+        generateCustomerTable();
+
     }
 
     @FXML

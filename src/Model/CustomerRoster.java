@@ -34,14 +34,15 @@ public class CustomerRoster {
         Statement customerDetails = (Statement) Main.conn.createStatement(); //Creates statement object
         Statement customerAddressDetails = (Statement) Main.conn.createStatement();
         ResultSet rsCustomer = customerDetails.executeQuery("SELECT * FROM U06aua.customer;"); //Creates resultset and executes query to grab all customers.
-        ResultSet rsCustomerAddress = customerAddressDetails.executeQuery("SELECT * FROM U06aua.address;");
         customerList.clear(); //Clean slate on customerList.
         while (rsCustomer.next()){
             Customer customer = new Customer();
             customer.setId(rsCustomer.getInt(1));
             customer.setCustomerName(rsCustomer.getString(2));
+            int customerAddressId = rsCustomer.getInt(3);
+            ResultSet rsCustomerAddress = customerAddressDetails.executeQuery("SELECT * FROM U06aua.address WHERE addressId = '" + customerAddressId + "';");
             rsCustomerAddress.next();
-            customer.setAddress(rsCustomerAddress.getString(1));
+            customer.setAddress(rsCustomerAddress.getString(2));
             customer.setPhone(rsCustomerAddress.getString(6));
             customerList.add(customer);
         }
