@@ -19,6 +19,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
+import javax.swing.*;
+
 public class MainScreenController {
 
     @FXML
@@ -95,8 +97,15 @@ public class MainScreenController {
     public static CustomerRoster customerRoster = new CustomerRoster();
     public static Customer selectedCustomer;
     @FXML
-    void addAppointmentHandler(ActionEvent event) {
-        //TODO
+    void addAppointmentHandler(ActionEvent event) throws SQLException, IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/AddAppointment.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        Stage stage = new Stage();
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.showAndWait();
+        generateAppointmentTable();
     }
 
     @FXML
@@ -152,13 +161,14 @@ public class MainScreenController {
     }
 
     @FXML
-    void updateAppointmentHandler(ActionEvent event) {
+    void updateAppointmentHandler(ActionEvent event) throws IOException, SQLException {
         //TODO
     }
 
+
+
     @FXML
     void updateCustomerHandler(ActionEvent event) throws SQLException, IOException {
-        //TODO: Grab selected customer and pass it to the UpdateCustomer screen and controller.
         selectedCustomer = customerTable.getSelectionModel().getSelectedItem();
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/UpdateCustomer.fxml"));
         Parent root = loader.load();
