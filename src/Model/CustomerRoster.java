@@ -51,4 +51,8 @@ public class CustomerRoster {
     public ObservableList<Customer> getCustomerList(){
         return customerList;
     }
+
+    public int getCustomerListSize(){
+        return customerList.size();
+    }
 }

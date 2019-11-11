@@ -2,7 +2,12 @@ package Controller;
 
 import java.io.IOException;
 import java.net.URL;
+import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.ResourceBundle;
 
 import Model.*;
@@ -96,6 +101,8 @@ public class MainScreenController {
     private TableColumn<?, ?> locationColumn;
     public static CustomerRoster customerRoster = new CustomerRoster();
     public static Customer selectedCustomer;
+    public static Calendar calendar = new Calendar();
+    public static Appointment selectedAppointment;
     @FXML
     void addAppointmentHandler(ActionEvent event) throws SQLException, IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/AddAppointment.fxml"));
@@ -131,13 +138,24 @@ public class MainScreenController {
     }
 
     @FXML
-    void deleteAppointmentHandler(ActionEvent event) {
-        //TODO
+    void deleteAppointmentHandler(ActionEvent event) throws SQLException {
+        PreparedStatement deleteAppointment = Main.conn.prepareStatement("DELETE FROM U06aua.appointment WHERE start = ?");
+        String dateTime = appointmentTable.getSelectionModel().getSelectedItem().getDate().toString();
+        deleteAppointment.setString(1, dateTime);
+        deleteAppointment.execute();
+        calendar.deleteAppointment(appointmentTable.getSelectionModel().getSelectedItem());
     }
 
     @FXML
-    void deleteCustomerHandler(ActionEvent event) {
-        //TODO
+    void deleteCustomerHandler(ActionEvent event) throws SQLException {
+        String customerName;
+        int customerId;
+        customerName = customerTable.getSelectionModel().getSelectedItem().getCustomerName();
+        customerId = customerTable.getSelectionModel().getSelectedItem().getId();
+        customerRoster.deleteCustomer(customerTable.getSelectionModel().getSelectedItem());
+        PreparedStatement deleteCustomer = Main.conn.prepareStatement("DELETE FROM U06aua.customer WHERE customerId = ?;");
+        deleteCustomer.setInt(1, customerId);
+        deleteCustomer.execute();
     }
 
     @FXML
@@ -162,7 +180,15 @@ public class MainScreenController {
 
     @FXML
     void updateAppointmentHandler(ActionEvent event) throws IOException, SQLException {
-        //TODO
+        selectedAppointment = appointmentTable.getSelectionModel().getSelectedItem();
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/UpdateAppointment.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        Stage stage = new Stage();
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.showAndWait();
+        generateAppointmentTable();
     }
 
 
@@ -182,13 +208,14 @@ public class MainScreenController {
     }
 
     @FXML
-    void viewByAllHandler(ActionEvent event) {
-        //TODO
+    void viewByAllHandler(ActionEvent event) throws SQLException {
+        generateAppointmentTable();
     }
 
     @FXML
     void viewByMonthHandler(ActionEvent event) {
-        //TODO
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        System.out.println(formatter.format(date));
     }
 
     @FXML
@@ -202,7 +229,6 @@ public class MainScreenController {
     }
 
     public void generateAppointmentTable() throws SQLException {
-        Calendar calendar = new Calendar();
         calendar.populateCalendar();
         appointmentTable.setItems(calendar.getAppointmentList());
     }

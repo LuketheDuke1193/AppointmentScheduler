@@ -4,8 +4,10 @@ import com.mysql.jdbc.Statement;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 public class Calendar {
     public ObservableList<Appointment> appointmentList = FXCollections.observableArrayList();
@@ -19,22 +21,31 @@ public class Calendar {
     }
 
     public void populateCalendar() throws SQLException {
-        Statement appointmentDetails = (Statement) Main.conn.createStatement(); //Creates statement object
-        Statement appointmentCustomerDetails = (Statement) Main.conn.createStatement();
-        ResultSet rsAppointmentDetails = appointmentDetails.executeQuery("SELECT * FROM U06aua.appointment");
-        ResultSet rsAppointmentCustomerDetails = appointmentCustomerDetails.executeQuery("SELECT customerId, customerName FROM U06aua.customer");
-        while (rsAppointmentDetails.next()){
+        PreparedStatement appointmentDetails = Main.conn.prepareStatement("SELECT * FROM U06aua.appointment;");
+        ResultSet appointmentDetailsRS = appointmentDetails.executeQuery();
+        appointmentList.clear();
+        while (appointmentDetailsRS.next()){
+            PreparedStatement appointmentCustomer = Main.conn.prepareStatement("SELECT * FROM U06aua.customer;");
+            ResultSet appointmentCustomerRS = appointmentCustomer.executeQuery();
             Appointment appointment = new Appointment();
-            appointment.setDate(rsAppointmentDetails.getTimestamp(10));
-            appointment.setLocation(rsAppointmentDetails.getString(6));
-            appointment.setType(rsAppointmentDetails.getString(8));
-            rsAppointmentCustomerDetails.next();
-            appointment.setCustomerID(rsAppointmentCustomerDetails.getInt(1));
-            appointment.setCustomerName(rsAppointmentCustomerDetails.getString(2));
-            appointmentList.add(appointment);
+            int customerId = appointmentDetailsRS.getInt("customerId");
+            Timestamp date = appointmentDetailsRS.getTimestamp("start");
+            String type = appointmentDetailsRS.getString("type");
+            String location = appointmentDetailsRS.getString("location");
+            while(appointmentCustomerRS.next()){
+                if (appointmentCustomerRS.getInt("customerId") == customerId){
+                    String customerName = appointmentCustomerRS.getString("customerName");
+                    appointment.setCustomerName(customerName);
+                }
             }
-
+            appointment.setCustomerID(customerId);
+            appointment.setDate(date);
+            appointment.setType(type);
+            appointment.setLocation(location);
+            appointmentList.add(appointment);
         }
+
+    }
 
 
     public void addAppointment(Appointment appointment){
@@ -45,7 +56,7 @@ public class Calendar {
         this.appointmentList.set(id, selectedAppointment);
     }
 
-    public void deleteCustomer(Appointment selectedAppointment){
+    public void deleteAppointment(Appointment selectedAppointment){
         this.appointmentList.remove(selectedAppointment);
     }
 
