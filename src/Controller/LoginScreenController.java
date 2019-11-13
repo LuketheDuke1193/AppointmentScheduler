@@ -1,9 +1,13 @@
 package Controller;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.TimeZone;
@@ -12,6 +16,7 @@ import Model.CustomerRoster;
 import Model.Main;
 import Model.User;
 import com.mysql.jdbc.Statement;
+import com.mysql.jdbc.log.Log;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -20,6 +25,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import jdk.jfr.internal.Logger;
+import Utilities.*;
+
+import javax.swing.text.Utilities;
 
 public class LoginScreenController {
 
@@ -50,30 +59,64 @@ public class LoginScreenController {
     @FXML
     private RadioButton espanolButton;
 
+    @FXML
+    private Label appLabel;
+
+    @FXML
+    private Label hoursLabel;
+    private LoggerHandler LoggerHandler;
+    private static final String fileName = "log.txt";
+
+    public static void log(boolean successfulLogin, String user) throws IOException {
+        FileWriter fileWriter = new FileWriter(fileName, true);
+        BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+        PrintWriter outputStream = new PrintWriter(bufferedWriter);
+        if (successfulLogin == true) {
+            String success = "successfully";
+            outputStream.println(ZonedDateTime.now() + " - " + user + " tried to log in " + success + ".");
+            outputStream.close();
+        } else {
+            String success = "unsuccessfully";
+            outputStream.println(ZonedDateTime.now() + " - " + user + " tried to log in " + success + ".");
+            outputStream.close();
+        }
+    }
+
 
     @FXML
     void englishButtonHandler(ActionEvent event) {
-        if (englishButton.selectedProperty().getValue() == true){
-            loginButton.setText("Login");
-            usernameField.setPromptText("Username");
-            passwordField.setPromptText("Password");
-            exitButton.setText("Exit");
+        if (englishButton.selectedProperty().getValue() == true || isInEnglishLocale()){
+            changeButtonsToEnglish.change();
+        }
+    }
 
+    boolean isInSpanishLocale(){
+        String language = Locale.getDefault().getLanguage();
+        if (language == "ES" || language == "es"){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    boolean isInEnglishLocale(){
+        String language = Locale.getDefault().getLanguage();
+        if (language == "EN" || language == "en"){
+            return true;
+        } else {
+            return false;
         }
     }
 
     @FXML
     void espanolButtonHandler(ActionEvent event) {
-        if (espanolButton.selectedProperty().getValue() == true){
-            loginButton.setText("Iniciar Sesión");
-            usernameField.setPromptText("Nombre de usuario");
-            passwordField.setPromptText("Contraseña");
-            exitButton.setText("Salida");
+        if ((espanolButton.selectedProperty().getValue() == true) || isInSpanishLocale()){
+            changeButtonsToSpanish.change();
         }
     }
 
     @FXML
-    void loginButtonHandler(ActionEvent event) throws SQLException {
+    void loginButtonHandler(ActionEvent event) throws SQLException, IOException {
         if ((!usernameField.getText().isEmpty()) && (!passwordField.getText().isEmpty())){
             //Grabs text from usernameField/passwordField
             String username = usernameField.getText().trim();
@@ -90,6 +133,7 @@ public class LoginScreenController {
 
                 if (username.equals(dbUsername) && password.equals(dbPassword)) {
                     System.out.println("login success");
+                    LoggerHandler.log(true, username);
                     Main.user.setUsername(username);
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/MainScreen.fxml"));
                     Parent root = loader.load();
@@ -102,16 +146,30 @@ public class LoginScreenController {
                     Stage loginStage = (Stage) loginButton.getScene().getWindow();
                     loginStage.close();
                 } else {
-                    System.out.println("User and pass did not match");
+                    if (espanolButton.selectedProperty().getValue() == true || isInSpanishLocale()) {
+                        LoggerHandler.log(false, username);
+                        Alert alert = new Alert(Alert.AlertType.WARNING);
+                        alert.setTitle("El nombre de usuario y la contraseña no coinciden.");
+                        alert.setContentText("Has ingresado una contraseña inválida. Inténtalo de nuevo.");
+                        alert.show();
+                    } else if (englishButton.selectedProperty().getValue() == true || isInEnglishLocale()) {
+                        Alert alert = new Alert(Alert.AlertType.WARNING);
+                        LoggerHandler.log(false, username);
+                        alert.setTitle("Username and password did not match.");
+                        alert.setContentText("You have entered an invalid password. Please try again.");
+                        alert.show();
+                    }
                 }
             } catch (SQLException | IOException e) {
                 e.printStackTrace();
-                if (espanolButton.selectedProperty().getValue() == true) {
+                if (espanolButton.selectedProperty().getValue() == true || isInSpanishLocale()) {
+                    LoggerHandler.log(false, username);
                     Alert alert = new Alert(Alert.AlertType.WARNING);
                     alert.setTitle("Error de inicio de sesión");
                     alert.setContentText("Hubo un error durante el inicio de sesión. O su nombre de usuario es incorrecto o no está en nuestro sistema.");
                     alert.show();
-                } else if (englishButton.selectedProperty().getValue() == true) {
+                } else if (englishButton.selectedProperty().getValue() == true || isInEnglishLocale()) {
+                    LoggerHandler.log(false, username);
                     Alert alert = new Alert(Alert.AlertType.WARNING);
                     alert.setTitle("Login Error");
                     alert.setContentText("There was an error during login. Either your username is incorrect or it is not in our system.");
@@ -119,12 +177,12 @@ public class LoginScreenController {
                 }
             }
         } else {
-            if (espanolButton.selectedProperty().getValue() == true) {
+            if (espanolButton.selectedProperty().getValue() == true || isInSpanishLocale()) {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setTitle("Error de inicio de sesión");
                 alert.setContentText("Asegúrese de que los campos de nombre de usuario y contraseña no estén vacíos.");
                 alert.show();
-            } else if (englishButton.selectedProperty().getValue() == true) {
+            } else if (englishButton.selectedProperty().getValue() == true || isInEnglishLocale()) {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setTitle("Login Error");
                 alert.setContentText("Please ensure that both the username and password fields are not empty.");
@@ -139,11 +197,37 @@ public class LoginScreenController {
         Platform.exit();
     }
 
+    LanguageChange changeButtonsToSpanish = () -> { //Implemented Lambda here so button/label changing functions wouldn't have to be entered 3 separate times.
+        loginButton.setText("Iniciar Sesión");
+        usernameField.setPromptText("Nombre de usuario");
+        passwordField.setPromptText("Contraseña");
+        exitButton.setText("Salida");
+        appLabel.setText("Programador de citas");
+        hoursLabel.setText("Horas de trabajo");
+    };
+
+    LanguageChange changeButtonsToEnglish = () -> { //Implemented Lambda here so button changing functions wouldn't have to be entered 3 separate times.
+        loginButton.setText("Login");
+        usernameField.setPromptText("Username");
+        passwordField.setPromptText("Password");
+        exitButton.setText("Exit");
+        appLabel.setText("Appointment Scheduler");
+        hoursLabel.setText("Business Hours");
+    };
+
+    public interface LanguageChange {
+        void change();
+    }
+
     @FXML
     void initialize() {
-        Locale locale = Locale.getDefault();
-
+        String locale = Locale.getDefault().getLanguage();
         CustomerRoster customerRoster = new CustomerRoster();
-
+        if (isInSpanishLocale()){
+            System.out.println(isInSpanishLocale());
+            changeButtonsToSpanish.change();
+            englishButton.selectedProperty().setValue(false);
+            espanolButton.selectedProperty().setValue(true);
+        }
     }
 }

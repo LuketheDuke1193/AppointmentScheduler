@@ -22,8 +22,12 @@ public class CustomerRoster {
         this.customerList.add(customer);
     }
 
-    public void updatecustomer(int id, Customer selectedCustomer){
-        this.customerList.set(id, selectedCustomer);
+    public void updateCustomer(int id, Customer selectedCustomer){
+        for (int i = 0; i < customerList.size(); i++){
+            if (customerList.get(i).getId() == id){
+                this.customerList.set(i, selectedCustomer);
+            }
+        }
     }
 
     public void deleteCustomer(Customer selectedCustomer){

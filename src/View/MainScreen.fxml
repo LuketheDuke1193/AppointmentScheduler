@@ -8,7 +8,6 @@
 <?import javafx.scene.shape.Line?>
 <?import javafx.scene.text.Font?>
 
-
 <AnchorPane prefHeight="592.0" prefWidth="1075.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.MainScreenController">
    <children>
       <Label layoutX="27.0" layoutY="24.0" text="Customers">
@@ -21,19 +20,19 @@
             <Font size="20.0" />
          </font>
       </Label>
-      <TableView fx:id="customerTable" layoutX="27.0" layoutY="60.0" onSort="#customerTableHandler" prefHeight="221.0" prefWidth="390.0">
+      <TableView fx:id="customerTable" layoutX="27.0" layoutY="60.0" prefHeight="221.0" prefWidth="390.0">
         <columns>
-          <TableColumn fx:id="customerName" prefWidth="209.0" text="Customer Name" />
-          <TableColumn fx:id="phoneNumber" prefWidth="180.0" text="Phone Number" />
+          <TableColumn fx:id="customerName" prefWidth="209.0" sortable="false" text="Customer Name" />
+          <TableColumn fx:id="phoneNumber" prefWidth="180.0" sortable="false" text="Phone Number" />
         </columns>
       </TableView>
-      <TableView fx:id="appointmentTable" layoutX="438.0" layoutY="60.0" onSort="#appointmentTableHandler" prefHeight="405.0" prefWidth="609.0">
+      <TableView fx:id="appointmentTable" layoutX="438.0" layoutY="60.0" prefHeight="405.0" prefWidth="609.0">
         <columns>
-          <TableColumn fx:id="customerID" prefWidth="84.0" text="Customer ID" />
-            <TableColumn fx:id="customerAppointmentName" prefWidth="125.0" text="Name" />
-          <TableColumn fx:id="date" prefWidth="128.0" text="Date" />
-            <TableColumn fx:id="type" prefWidth="74.0" text="Type" />
-            <TableColumn fx:id="locationColumn" prefWidth="197.0" text="Location" />
+          <TableColumn fx:id="customerID" prefWidth="84.0" sortable="false" text="Customer ID" />
+            <TableColumn fx:id="customerAppointmentName" prefWidth="125.0" sortable="false" text="Name" />
+          <TableColumn fx:id="date" prefWidth="128.0" sortable="false" text="Date" />
+            <TableColumn fx:id="type" prefWidth="74.0" sortable="false" text="Type" />
+            <TableColumn fx:id="locationColumn" prefWidth="197.0" sortable="false" text="Location" />
         </columns>
       </TableView>
       <Button fx:id="updateAppointment" layoutX="923.0" layoutY="503.0" mnemonicParsing="false" onAction="#updateAppointmentHandler" text="Update" />
@@ -59,10 +58,12 @@
       </Label>
       <Button fx:id="generateTypeCount" layoutX="335.0" layoutY="409.0" mnemonicParsing="false" onAction="#generateTypeCountHandler" text="Generate" />
       <Button fx:id="generateConsultantSchedule" layoutX="335.0" layoutY="468.0" mnemonicParsing="false" onAction="#generateConsultantScheduleHandler" text="Generate" />
-      <Button fx:id="generateAvgPerWeek" layoutX="335.0" layoutY="528.0" mnemonicParsing="false" onAction="#generateAvgPerWeekHandler" text="Generate" />
+      <Button fx:id="generateAvgPerMonth" layoutX="335.0" layoutY="528.0" mnemonicParsing="false" onAction="#generateConsultantAppointmentCount" text="Generate" />
       <Label layoutX="27.0" layoutY="413.0" text="Number of appointment types by month" />
       <Label layoutX="27.0" layoutY="472.0" text="Schedule for each consultant" />
-      <Label layoutX="27.0" layoutY="532.0" text="Average number of appointments per week" />
+      <Label layoutX="27.0" layoutY="532.0" text="Number of appointments by consultant" />
       <Button fx:id="exitButton" layoutX="1012.0" layoutY="553.0" mnemonicParsing="false" onAction="#exitButtonHandler" text="Exit" />
+      <Label layoutX="616.0" layoutY="23.0" prefHeight="32.0" prefWidth="160.0" text="Consultation Business Hours:" />
+      <Label layoutX="776.0" layoutY="23.0" prefHeight="32.0" prefWidth="160.0" text="14:00 - 22:00 UTC" />
    </children>
 </AnchorPane>

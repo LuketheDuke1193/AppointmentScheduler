@@ -5,12 +5,19 @@ import java.net.URL;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
 import Model.*;
+import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -18,11 +25,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 
 import javax.swing.*;
 
@@ -92,7 +98,7 @@ public class MainScreenController {
     private TableColumn<?, ?> customerAppointmentName;
 
     @FXML
-    private TableColumn<?, ?> date;
+    private TableColumn<Appointment, String> date;
 
     @FXML
     private TableColumn<?, ?> type;
@@ -127,7 +133,7 @@ public class MainScreenController {
         generateCustomerTable();
     }
 
-    @FXML
+   /* @FXML
     void appointmentTableHandler(ActionEvent event) {
         //TODO
     }
@@ -135,13 +141,16 @@ public class MainScreenController {
     @FXML
     void customerTableHandler(ActionEvent event) {
         //TODO
-    }
+    }*/
 
     @FXML
     void deleteAppointmentHandler(ActionEvent event) throws SQLException {
         PreparedStatement deleteAppointment = Main.conn.prepareStatement("DELETE FROM U06aua.appointment WHERE start = ?");
-        String dateTime = appointmentTable.getSelectionModel().getSelectedItem().getDate().toString();
-        deleteAppointment.setString(1, dateTime);
+        ZonedDateTime dateTime = appointmentTable.getSelectionModel().getSelectedItem().getStart();
+        ZonedDateTime dateTimeUTC = dateTime.withZoneSameInstant(ZoneOffset.UTC);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String dateTimeUTCDB = dateTimeUTC.format(formatter);
+        deleteAppointment.setString(1, dateTimeUTCDB);
         deleteAppointment.execute();
         calendar.deleteAppointment(appointmentTable.getSelectionModel().getSelectedItem());
     }
@@ -160,22 +169,40 @@ public class MainScreenController {
 
     @FXML
     void exitButtonHandler(ActionEvent event) {
-        //TODO
+        Platform.exit();
     }
 
     @FXML
-    void generateAvgPerWeekHandler(ActionEvent event) {
-        //TODO
+    void generateConsultantAppointmentCount(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/AppointmentCountConsultant.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        Stage stage = new Stage();
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.showAndWait();
     }
 
     @FXML
-    void generateConsultantScheduleHandler(ActionEvent event) {
-
+    void generateConsultantScheduleHandler(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/ConsultantTable.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        Stage stage = new Stage();
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.showAndWait();
     }
 
     @FXML
-    void generateTypeCountHandler(ActionEvent event) {
-        //TODO
+    void generateTypeCountHandler(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/TypeCount.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        Stage stage = new Stage();
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.showAndWait();
     }
 
     @FXML
@@ -214,13 +241,30 @@ public class MainScreenController {
 
     @FXML
     void viewByMonthHandler(ActionEvent event) {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        System.out.println(formatter.format(date));
+        LocalDate now = LocalDate.now();
+        LocalDate oneMonthFromNow = now.plusMonths(1);
+
+        Calendar calendarOneMonthOut = new Calendar();
+        for (int i = 0; i < calendar.getAppointmentList().size(); i++){
+            if (calendar.getAppointmentList().get(i).getStart().toLocalDateTime().toLocalDate().isBefore(oneMonthFromNow) && calendar.getAppointmentList().get(i).getStart().toLocalDateTime().toLocalDate().isAfter(now)){
+                calendarOneMonthOut.addAppointment(calendar.getAppointmentList().get(i));
+            }
+        }
+        appointmentTable.setItems(calendarOneMonthOut.getAppointmentList());
     }
 
     @FXML
     void viewByWeekHandler(ActionEvent event) {
-        //TODO
+        LocalDate now = LocalDate.now();
+        LocalDate oneWeekFromNow = now.plusWeeks(1);
+
+        Calendar calendarOneWeekOut = new Calendar();
+        for (int i = 0; i < calendar.getAppointmentList().size(); i++){
+            if (calendar.getAppointmentList().get(i).getStart().toLocalDateTime().toLocalDate().isBefore(oneWeekFromNow) && calendar.getAppointmentList().get(i).getStart().toLocalDateTime().toLocalDate().isAfter(now)){
+                calendarOneWeekOut.addAppointment(calendar.getAppointmentList().get(i));
+            }
+        }
+        appointmentTable.setItems(calendarOneWeekOut.getAppointmentList());
     }
 
     public void generateCustomerTable() throws SQLException {
@@ -233,11 +277,28 @@ public class MainScreenController {
         appointmentTable.setItems(calendar.getAppointmentList());
     }
 
+    void upcomingAppointment(){
+        for (int i = 0; i < MainScreenController.calendar.getAppointmentList().size(); i++){
+            ZonedDateTime upcomingAppointmentTime = MainScreenController.calendar.getAppointmentList().get(i).getStart();
+            ZonedDateTime now = ZonedDateTime.now();
+            ZonedDateTime fifteenMinutesFromNow = now.plusMinutes(15);
+            if (upcomingAppointmentTime.isBefore(fifteenMinutesFromNow) && upcomingAppointmentTime.isAfter(now)){
+                Alert upcomingAlert = new Alert(Alert.AlertType.WARNING, "You have an upcoming appointment " +"within the next fifteen minutes with " + MainScreenController.calendar.getAppointmentList().get(i).getCustomerName() + ".", ButtonType.OK, ButtonType.CANCEL);
+                Stage stage = (Stage) upcomingAlert.getDialogPane().getScene().getWindow();
+                stage.setAlwaysOnTop(true);
+                stage.toFront();
+                stage.show();
+                System.out.println("showing alert...");
+            }
+        }
+    }
+
     @FXML
-    void initialize() throws SQLException, ClassNotFoundException {
+    void initialize() throws SQLException, ClassNotFoundException, InterruptedException {
         generateCustomerTable();
         customerTable.refresh();
         generateAppointmentTable();
+        upcomingAppointment();
 
 
 
@@ -246,10 +307,21 @@ public class MainScreenController {
         phoneNumber.setCellValueFactory(new PropertyValueFactory<>("phone"));
         customerAppointmentName.setCellValueFactory(new PropertyValueFactory<>("customerName"));
         customerID.setCellValueFactory(new PropertyValueFactory<>("customerID"));
-        date.setCellValueFactory(new PropertyValueFactory<>("date"));
+        date.setCellValueFactory(
+                (Appointment) -> {
+                    ZonedDateTime zdt = Appointment.getValue().getStart();
+                    SimpleStringProperty dateValue = new SimpleStringProperty();
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                    dateValue.setValue(formatter.format(zdt));
+                    return dateValue;
+                }); //Rather than individually going through and reformatting the ZonedDateTime for each appointment instance, I utilize this lambda expression to reformat the data at the front-end.
         type.setCellValueFactory(new PropertyValueFactory<>("type"));
         locationColumn.setCellValueFactory(new PropertyValueFactory<>("location"));
 
 
+
+        }
+
+
     }
-}
+

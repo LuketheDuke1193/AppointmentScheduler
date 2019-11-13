@@ -10,6 +10,8 @@ import com.mysql.jdbc.Connection;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
 
 public class Main extends Application {
     private static final String databaseName = "U06aua";
@@ -19,6 +21,8 @@ public class Main extends Application {
     private static final String driver = "com.mysql.jdbc.Driver";
     public static Connection conn;
     public static User user = new User();
+    public static LocalTime openForBusiness = LocalTime.of(14, 00, 00);
+    public static LocalTime closedForBusiness = LocalTime.of(22, 00, 00);
 
     public static Connection makeConnection() throws ClassNotFoundException, SQLException {
         Class.forName(driver);

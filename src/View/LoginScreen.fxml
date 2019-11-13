@@ -16,7 +16,7 @@
             <Image url="@../../../../../Downloads/pexels-photo-733852.jpeg" />
          </image>
       </ImageView>
-      <Label layoutX="83.0" layoutY="281.0" prefHeight="32.0" prefWidth="129.0" text="Appointment Scheduler" />
+      <Label fx:id="appLabel" layoutX="83.0" layoutY="281.0" prefHeight="32.0" prefWidth="129.0" text="Appointment Scheduler" />
       <TextField fx:id="usernameField" layoutX="83.0" layoutY="321.0" promptText="Username" />
       <TextField fx:id="passwordField" layoutX="83.0" layoutY="358.0" promptText="Password" />
       <Button fx:id="loginButton" layoutX="83.0" layoutY="434.0" mnemonicParsing="false" onAction="#loginButtonHandler" text="Login" textAlignment="CENTER" />
@@ -27,5 +27,7 @@
          </toggleGroup>
       </RadioButton>
       <RadioButton fx:id="espanolButton" layoutX="169.0" layoutY="396.0" mnemonicParsing="false" onAction="#espanolButtonHandler" text="Español" toggleGroup="$language" />
+      <Label fx:id="hoursLabel" layoutX="605.0" layoutY="431.0" prefHeight="32.0" prefWidth="160.0" text="Consultation Business Hours:" />
+      <Label layoutX="605.0" layoutY="458.0" prefHeight="32.0" prefWidth="160.0" text="14:00 - 22:00 UTC" />
    </children>
 </AnchorPane>

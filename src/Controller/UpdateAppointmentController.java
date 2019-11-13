@@ -4,10 +4,13 @@ import java.net.URL;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.LocalDate;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.util.Formatter;
 import java.util.ResourceBundle;
 
+import Model.Customer;
+import Model.CustomerRoster;
 import Model.Main;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -48,11 +51,18 @@ public class UpdateAppointmentController {
     @FXML
     private ChoiceBox<String> minutesChoice;
 
+    @FXML
+    private ChoiceBox<String> hourLengthChoice;
+
+    @FXML
+    private ChoiceBox<String> minutesLengthChoice;
+
     int appointmentID;
 
     @FXML
     void cancelHandler(ActionEvent event) {
-
+        Stage stage = (Stage) cancel.getScene().getWindow();
+        stage.close();
     }
 
     @FXML
@@ -70,34 +80,78 @@ public class UpdateAppointmentController {
             LocalDate date = datePicker.getValue();
             String hour = hourChoice.getValue();
             String minutes = minutesChoice.getValue();
-            String dateTime = date.toString() + " " + hour + ":" + minutes + ":" + "00";
-            Timestamp dateTimestamp = Timestamp.valueOf(dateTime);
+            LocalTime time = LocalTime.parse(hour + ":" + minutes + ":00");
 
-            MainScreenController.selectedAppointment.setCustomerName(customerName);
-            MainScreenController.selectedAppointment.setDate(dateTimestamp);
-            MainScreenController.selectedAppointment.setType(type);
-            MainScreenController.selectedAppointment.setLocation(location);
-
-            PreparedStatement customerDB = Main.conn.prepareStatement("SELECT customerId FROM U06aua.customer WHERE customerName = ?;");
-            customerDB.setString(1, customerName);
-            ResultSet customerDBRS = customerDB.executeQuery();
-            customerDBRS.next();
-            int customerId = customerDBRS.getInt("customerId");
-
-            PreparedStatement appointmentUpdate = Main.conn.prepareStatement("UPDATE U06aua.appointment SET " +
-                    "customerId = ?,  location = ?, type = ? ,start = ?, lastUpdate = now(), lastUpdateBy = ? WHERE" +
-                    " appointmentId = ?");
-            appointmentUpdate.setInt(1, customerId);
-            appointmentUpdate.setString(2, location);
-            appointmentUpdate.setString(3, type);
-            appointmentUpdate.setString(4, dateTime);
-            appointmentUpdate.setString(5, Main.user.getUsername());
-            appointmentUpdate.setInt(6, appointmentID);
-            appointmentUpdate.execute();
-            Stage stage = (Stage) save.getScene().getWindow();
-            stage.close();
+            ZoneId zoneId = ZoneId.systemDefault();
+            ZonedDateTime startZdt = ZonedDateTime.of(date, time, zoneId); //Local Time
+            ZonedDateTime startZDTUTC = startZdt.withZoneSameInstant(ZoneOffset.UTC); //UTC Time
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            String startTimeUTC = startZDTUTC.format(formatter); //UTC DB format.
+            String startTime = startZdt.format(formatter); //Local DB format.
 
 
+            long hoursLength = Long.valueOf(hourLengthChoice.getValue());
+            long minutesLength = Long.valueOf((String) minutesLengthChoice.getValue());
+            ZonedDateTime endZdt = startZdt.plusHours(hoursLength);
+            ZonedDateTime endZDTUTC = endZdt.withZoneSameInstant(ZoneOffset.UTC);
+            endZdt.plusMinutes(minutesLength);
+            endZDTUTC.plusMinutes(minutesLength);
+            String endTimeUTC = endZDTUTC.format(formatter);
+            LocalTime appointmentEnd = endZDTUTC.toLocalTime();
+            LocalTime appointmentBegin = startZDTUTC.toLocalTime();
+
+            if ((appointmentBegin.isAfter(Main.closedForBusiness) || appointmentBegin.isBefore(Main.openForBusiness)) || (appointmentEnd.isAfter(Main.closedForBusiness) || appointmentEnd.isBefore(Main.openForBusiness))) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Appointment Hours Error");
+                alert.setContentText("Appointments must be scheduled during business hours.");
+                alert.show();
+
+            } else {
+                boolean overlappingAppointment = false;
+                for (int i = 0; i < MainScreenController.calendar.getAppointmentList().size(); i++) {
+                    if (MainScreenController.calendar.getAppointmentList().get(i) != MainScreenController.selectedAppointment){
+                        ZonedDateTime checkAppointmentStart = MainScreenController.calendar.getAppointmentList().get(i).getStart();
+                        ZonedDateTime checkAppointmentEnd = MainScreenController.calendar.getAppointmentList().get(i).getEnd();
+                        if ((!(startZdt.isBefore(checkAppointmentStart)) && !(startZdt.isAfter(checkAppointmentEnd))) || (!(endZdt.isBefore(checkAppointmentStart)) && !(endZdt.isAfter(checkAppointmentEnd)))) {
+                            overlappingAppointment = true;
+                        }
+                    }
+                }
+
+                if (overlappingAppointment == true) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Overlapping Appointments");
+                    alert.setContentText("The appointment you are attempting to schedule overlaps with another appointment. Please ensure that appointments do not overlap to continue.");
+                    alert.show();
+                } else {
+                    MainScreenController.selectedAppointment.setCustomerName(customerName);
+                    MainScreenController.selectedAppointment.setStart(startZdt);
+                    MainScreenController.selectedAppointment.setType(type);
+                    MainScreenController.selectedAppointment.setLocation(location);
+
+                    PreparedStatement customerDB = Main.conn.prepareStatement("SELECT customerId FROM U06aua.customer WHERE customerName = ?;");
+                    customerDB.setString(1, customerName);
+                    ResultSet customerDBRS = customerDB.executeQuery();
+                    customerDBRS.next();
+                    int customerId = customerDBRS.getInt("customerId");
+
+                    PreparedStatement appointmentUpdate = Main.conn.prepareStatement("UPDATE U06aua.appointment SET " +
+                            "customerId = ?,  location = ?, type = ? ,start = ?, end = ?, lastUpdate = now(), lastUpdateBy = ? WHERE" +
+                            " appointmentId = ?");
+                    appointmentUpdate.setInt(1, customerId);
+                    appointmentUpdate.setString(2, location);
+                    appointmentUpdate.setString(3, type);
+                    appointmentUpdate.setString(4, startTimeUTC);
+                    appointmentUpdate.setString(5, endTimeUTC);
+                    appointmentUpdate.setString(6, Main.user.getUsername());
+                    appointmentUpdate.setInt(7, appointmentID);
+                    appointmentUpdate.execute();
+                    Stage stage = (Stage) save.getScene().getWindow();
+                    stage.close();
+
+
+                }
+            }
         }
     }
 
@@ -121,19 +175,36 @@ public class UpdateAppointmentController {
 
         hourChoice.setItems(hoursList);
         minutesChoice.setItems(minutesList);
+        hourLengthChoice.setItems(hoursList);
+        minutesLengthChoice.setItems(minutesList);
 
         for (int i = 0; i < MainScreenController.customerRoster.getCustomerListSize(); i++){
             customerNames.add(MainScreenController.customerRoster.getCustomerList().get(i).getCustomerName());
         }
         customerChoice.setItems(customerNames);
         customerChoice.setValue(MainScreenController.selectedAppointment.getCustomerName());
-        LocalDate date = MainScreenController.selectedAppointment.getDate().toLocalDateTime().toLocalDate();
+        LocalDate date = MainScreenController.selectedAppointment.getStart().toLocalDateTime().toLocalDate();
         datePicker.setValue(date);
-        String dateTime = MainScreenController.selectedAppointment.getDate().toString();
-        String hours = dateTime.substring(11, 13);
-        String minutes = dateTime.substring(14, 16);
-        hourChoice.setValue(hours);
-        minutesChoice.setValue(minutes);
+        ZonedDateTime start = MainScreenController.selectedAppointment.getStart();
+        ZonedDateTime startUTC = start.withZoneSameInstant(ZoneOffset.UTC);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String dateTime = startUTC.format(formatter);
+        ZonedDateTime end = MainScreenController.selectedAppointment.getEnd();
+        Duration length = Duration.between(start, end);
+        int hoursLength = length.toHoursPart();
+        int minutesLength = length.toMinutesPart();
+        String formatHoursLength = String.format("%02d", hoursLength);
+        String formatMinutesLength = String.format("%02d", minutesLength);
+        int hours = start.getHour();
+        int minutes = start.getMinute();
+        String formatHours = String.format("%02d", hours);
+        String formatMinutes = String.format("%02d", minutes);
+
+        hourChoice.setValue(String.valueOf(formatHours));
+        minutesChoice.setValue(String.valueOf(formatMinutes));
+        hourLengthChoice.setValue(formatHoursLength);
+        minutesLengthChoice.setValue(formatMinutesLength);
+
         appointmentType.setText(MainScreenController.selectedAppointment.getType());
         appointmentLocation.setText(MainScreenController.selectedAppointment.getLocation());
 

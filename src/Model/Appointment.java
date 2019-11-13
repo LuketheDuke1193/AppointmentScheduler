@@ -1,19 +1,21 @@
 package Model;
 
-import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 
 public class Appointment {
 
     int customerID;
     String customerName;
-    Timestamp date;
+    ZonedDateTime start;
+    ZonedDateTime end;
     String type;
     String location;
 
-    public Appointment(int customerID, String customerName, Timestamp date, String type, String location){
+    public Appointment(int customerID, String customerName, ZonedDateTime start, ZonedDateTime end, String type, String location){
         this.customerID = customerID;
         this.customerName = customerName;
-        this.date = date;
+        this.start = start;
+        this.end = end;
         this.type = type;
         this.location = location;
     }
@@ -37,12 +39,20 @@ public class Appointment {
         this.customerName = customerName;
     }
 
-    public Timestamp getDate() {
-        return date;
+    public ZonedDateTime getStart() {
+        return start;
     }
 
-    public void setDate(Timestamp date) {
-        this.date = date;
+    public void setStart(ZonedDateTime start) {
+        this.start = start;
+    }
+
+    public ZonedDateTime getEnd(){
+        return end;
+    }
+
+    public void setEnd(ZonedDateTime end){
+        this.end = end;
     }
 
     public String getType() {
