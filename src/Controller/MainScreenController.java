@@ -105,6 +105,10 @@ public class MainScreenController {
 
     @FXML
     private TableColumn<?, ?> locationColumn;
+
+    @FXML
+    private Label businessHours;
+
     public static CustomerRoster customerRoster = new CustomerRoster();
     public static Customer selectedCustomer;
     public static Calendar calendar = new Calendar();
@@ -299,6 +303,8 @@ public class MainScreenController {
         customerTable.refresh();
         generateAppointmentTable();
         upcomingAppointment();
+
+        businessHours.setText(LoginScreenController.businessHoursToLocal());
 
 
 

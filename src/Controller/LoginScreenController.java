@@ -4,9 +4,7 @@ import java.io.*;
 import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -63,9 +61,31 @@ public class LoginScreenController {
     private Label appLabel;
 
     @FXML
+    private Label businessHoursTime;
+
+    @FXML
     private Label hoursLabel;
     private LoggerHandler LoggerHandler;
     private static final String fileName = "log.txt";
+
+
+    public static String businessHoursToLocal(){
+        LocalDate date = LocalDate.now();
+        ZoneId zoneId = ZoneId.of("UTC");
+        ZoneId zoneIdLocal = ZoneId.systemDefault();
+        LocalTime openTimeUTC = LocalTime.of(14, 00,00);
+        LocalTime closeTimeUTC = LocalTime.of(22, 00, 00);
+        ZonedDateTime zdtOpenUTC = ZonedDateTime.of(date, openTimeUTC, zoneId);
+        ZonedDateTime zdtClosedUTC = ZonedDateTime.of(date, closeTimeUTC, zoneId);
+        ZonedDateTime zdtOpenLocal = zdtOpenUTC.withZoneSameInstant(zoneIdLocal);
+        ZonedDateTime zdtClosedLocal = zdtClosedUTC.withZoneSameInstant(zoneIdLocal);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        String openTime = formatter.format(zdtOpenLocal);
+        String closeTime = formatter.format(zdtClosedLocal);
+        String businessHours = openTime + " - " + closeTime + " " + zoneIdLocal.toString();
+        return businessHours;
+    }
 
     public static void log(boolean successfulLogin, String user) throws IOException {
         FileWriter fileWriter = new FileWriter(fileName, true);
@@ -81,7 +101,6 @@ public class LoginScreenController {
             outputStream.close();
         }
     }
-
 
     @FXML
     void englishButtonHandler(ActionEvent event) {
@@ -229,5 +248,6 @@ public class LoginScreenController {
             englishButton.selectedProperty().setValue(false);
             espanolButton.selectedProperty().setValue(true);
         }
+        businessHoursTime.setText(businessHoursToLocal());
     }
 }
